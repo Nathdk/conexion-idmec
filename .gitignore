@@ -1,0 +1,45 @@
+# ===== Node.js / Backend =====
+backend/node_modules/
+backend/.env
+backend/.env.local
+backend/npm-debug.log*
+backend/dist/
+backend/build/
+
+# ===== Laravel / Panel Web =====
+panel-web/vendor/
+panel-web/node_modules/
+panel-web/.env
+panel-web/storage/*.key
+panel-web/storage/logs/*.log
+panel-web/storage/framework/cache/*
+panel-web/storage/framework/sessions/*
+panel-web/storage/framework/views/*
+panel-web/bootstrap/cache/*.php
+panel-web/public/hot
+panel-web/public/storage
+panel-web/.phpunit.result.cache
+
+# ===== Flutter / App Móvil =====
+app-movil/build/
+app-movil/.dart_tool/
+app-movil/.flutter-plugins
+app-movil/.flutter-plugins-dependencies
+app-movil/.packages
+app-movil/android/.gradle/
+app-movil/android/app/debug/
+app-movil/android/app/profile/
+app-movil/android/app/release/
+app-movil/android/local.properties
+app-movil/ios/Pods/
+app-movil/*.iml
+app-movil/.idea/
+
+# ===== General =====
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+*.suo
+*.user
