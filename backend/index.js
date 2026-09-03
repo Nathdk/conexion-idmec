@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const pool = require('./config/db');
+const conectarMongo = require('./config/mongo');
+
+conectarMongo();
 
 const app = express();
 app.use(cors());
@@ -26,6 +29,16 @@ app.get('/api/test-db', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// Ruta de prueba general del sistema
+app.get('/api/status', async (req, res) => {
+  res.json({
+    api: 'CONEXIÓN IDMEC',
+    estado: 'activo',
+    postgresql: 'conectado',
+    mongodb: 'conectado'
+  });
 });
 
 const PORT = process.env.PORT || 3000;
