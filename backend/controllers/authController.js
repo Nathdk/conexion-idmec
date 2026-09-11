@@ -79,4 +79,73 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { registrar, login };
+// Listar todos los usuarios
+const listarUsuarios = async (req, res) => {
+  try {
+    const resultado = await pool.query(
+      'SELECT id_usuario, nombre, correo, rol FROM usuario ORDER BY id_usuario'
+    );
+    res.json(resultado.rows);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al listar usuarios', error: error.message });
+  }
+};
+
+// Obtener un usuario por ID
+const obtenerUsuario = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const resultado = await pool.query(
+      'SELECT id_usuario, nombre, correo, rol FROM usuario WHERE id_usuario = $1',
+      [id]
+    );
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    res.json(resultado.rows[0]);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener usuario', error: error.message });
+  }
+};
+
+// Actualizar usuario (nombre, correo, rol)
+const actualizarUsuario = async (req, res) => {
+  const { id } = req.params;
+  const { nombre, correo, rol } = req.body;
+
+  if (!nombre || !correo || !rol) {
+    return res.status(400).json({ mensaje: 'Nombre, correo y rol son obligatorios' });
+  }
+
+  try {
+    const resultado = await pool.query(
+      'UPDATE usuario SET nombre = $1, correo = $2, rol = $3 WHERE id_usuario = $4 RETURNING id_usuario, nombre, correo, rol',
+      [nombre, correo, rol, id]
+    );
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    res.json({ mensaje: 'Usuario actualizado correctamente', usuario: resultado.rows[0] });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al actualizar usuario', error: error.message });
+  }
+};
+
+// Eliminar usuario
+const eliminarUsuario = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const resultado = await pool.query(
+      'DELETE FROM usuario WHERE id_usuario = $1 RETURNING id_usuario',
+      [id]
+    );
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    res.json({ mensaje: 'Usuario eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al eliminar usuario', error: error.message });
+  }
+};
+
+module.exports = { registrar, login, listarUsuarios, obtenerUsuario, actualizarUsuario, eliminarUsuario };
