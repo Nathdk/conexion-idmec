@@ -5,12 +5,18 @@ const pool = require('./config/db');
 const conectarMongo = require('./config/mongo');
 const authRoutes = require('./routes/authRoutes');
 
+const miembroRoutes = require('./routes/miembroRoutes');
+const visitanteRoutes = require('./routes/visitanteRoutes');
+
 conectarMongo();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
+
+app.use('/api/miembros', miembroRoutes);
+app.use('/api/visitantes', visitanteRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
