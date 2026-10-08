@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 
 const miembroRoutes = require('./routes/miembroRoutes');
 const visitanteRoutes = require('./routes/visitanteRoutes');
+const asistenciaRoutes = require('./routes/asistenciaRoutes');
 
 conectarMongo();
 
@@ -17,6 +18,7 @@ app.use('/api/auth', authRoutes);
 
 app.use('/api/miembros', miembroRoutes);
 app.use('/api/visitantes', visitanteRoutes);
+app.use('/api/asistencia', asistenciaRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
