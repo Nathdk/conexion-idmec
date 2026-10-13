@@ -23,6 +23,8 @@
         <p>Rol: {{ auth()->user()->rol }}</p>
 	<p><a href="{{ route('ingresos.index') }}" style="color:#1E4D7B;font-weight:bold">Ir a Ingresos →</a></p>
 	<p><a href="{{ route('egresos.index') }}" style="color:#1E4D7B;font-weight:bold">Ir a Egresos →</a></p>
+        <p><a href="{{ route('balance.index') }}" style="color:#1E4D7B;font-weight:bold">Ver Balance →</a></p>
+        <p><a href="{{ route('reportes.index') }}" style="color:#1E4D7B;font-weight:bold">Ir a Reportes →</a></p>
     </main>
 </body>
 </html>
