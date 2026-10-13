@@ -6,7 +6,7 @@ import 'miembros_screen.dart';
 import 'visitantes_screen.dart';
 import 'asistencia_screen.dart';
 import 'estadisticas_asistencia_screen.dart';
-
+import 'eventos_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -55,7 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _Modulo('Usuarios', Icons.admin_panel_settings, null),
         _Modulo('Asistencia', Icons.fact_check, () => const AsistenciaScreen()),
         _Modulo('Estadísticas', Icons.bar_chart, () => const EstadisticasAsistenciaScreen()),
-        _Modulo('Eventos', Icons.event, null),
+        _Modulo('Eventos', Icons.event, () => const EventosScreen()),
+
       ]);
     }
     return modulos;

@@ -9,6 +9,7 @@ const miembroRoutes = require('./routes/miembroRoutes');
 const visitanteRoutes = require('./routes/visitanteRoutes');
 const asistenciaRoutes = require('./routes/asistenciaRoutes');
 const comprobanteRoutes = require('./routes/comprobanteRoutes');
+const eventoRoutes = require('./routes/eventoRoutes');
 
 conectarMongo();
 
@@ -21,6 +22,7 @@ app.use('/api/miembros', miembroRoutes);
 app.use('/api/visitantes', visitanteRoutes);
 app.use('/api/asistencia', asistenciaRoutes);
 app.use('/api/comprobantes', comprobanteRoutes);
+app.use('/api/eventos', eventoRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
