@@ -10,6 +10,9 @@ const visitanteRoutes = require('./routes/visitanteRoutes');
 const asistenciaRoutes = require('./routes/asistenciaRoutes');
 const comprobanteRoutes = require('./routes/comprobanteRoutes');
 const eventoRoutes = require('./routes/eventoRoutes');
+const recordatorioRoutes = require('./routes/recordatorioRoutes');
+const cron = require('node-cron');
+const { enviarRecordatoriosDelDia } = require('./services/recordatorioService');
 
 conectarMongo();
 
@@ -23,6 +26,17 @@ app.use('/api/visitantes', visitanteRoutes);
 app.use('/api/asistencia', asistenciaRoutes);
 app.use('/api/comprobantes', comprobanteRoutes);
 app.use('/api/eventos', eventoRoutes);
+app.use('/api/recordatorios', recordatorioRoutes);
+
+// Todos los días a las 8:00 AM (hora de México) se envían los recordatorios del día
+cron.schedule('0 8 * * *', async () => {
+  try {
+    const total = await enviarRecordatoriosDelDia();
+    console.log(`Recordatorios enviados: ${total}`);
+  } catch (error) {
+    console.error('Error en el envío diario de recordatorios:', error.message);
+  }
+}, { timezone: 'America/Mexico_City' });
 
 // Ruta de prueba
 app.get('/', (req, res) => {

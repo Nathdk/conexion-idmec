@@ -1,4 +1,6 @@
 const pool = require('../config/db');
+const { programarRecordatorios } = require('../services/recordatorioService');
+
 
 const COLUMNAS = "id_evento, titulo, to_char(fecha, 'YYYY-MM-DD') AS fecha, descripcion, id_usuario";
 
@@ -16,6 +18,7 @@ const crearEvento = async (req, res) => {
        VALUES ($1, $2, $3, $4) RETURNING ${COLUMNAS}`,
       [titulo, fecha, descripcion, id_usuario]
     );
+    await programarRecordatorios(nuevo.rows[0]);
     res.status(201).json({ mensaje: 'Evento creado correctamente', evento: nuevo.rows[0] });
   } catch (error) {
     if (error.code === '23503') {
@@ -73,6 +76,9 @@ const actualizarEvento = async (req, res) => {
     if (resultado.rows.length === 0) {
       return res.status(404).json({ mensaje: 'Evento no encontrado' });
     }
+  	// La fecha pudo cambiar: se recalculan los recordatorios
+    await pool.query('DELETE FROM recordatorio WHERE id_evento = $1', [id]);
+    await programarRecordatorios(resultado.rows[0]);
     res.json({ mensaje: 'Evento actualizado correctamente', evento: resultado.rows[0] });
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al actualizar evento', error: error.message });
