@@ -7,6 +7,7 @@ import 'visitantes_screen.dart';
 import 'asistencia_screen.dart';
 import 'estadisticas_asistencia_screen.dart';
 import 'eventos_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,9 +33,21 @@ class _HomeScreenState extends State<HomeScreen> {
       _nombre = sesion['nombre'];
       _rol = sesion['rol'];
     });
+
+    // Los avisos de inventario solo les llegan al administrador y al tesorero
+    if (_rol == 'Administrador' || _rol == 'Tesorero') {
+      try {
+        await FirebaseMessaging.instance.subscribeToTopic('inventario');
+      } catch (e) {
+        debugPrint('No se pudo suscribir a los avisos de inventario: $e');
+      }
+    }
   }
 
   Future<void> _cerrarSesion() async {
+    try {
+      await FirebaseMessaging.instance.unsubscribeFromTopic('inventario');
+    } catch (_) {}
     await _authService.cerrarSesion();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

@@ -11,6 +11,7 @@ const asistenciaRoutes = require('./routes/asistenciaRoutes');
 const comprobanteRoutes = require('./routes/comprobanteRoutes');
 const eventoRoutes = require('./routes/eventoRoutes');
 const recordatorioRoutes = require('./routes/recordatorioRoutes');
+const notificacionRoutes = require('./routes/notificacionRoutes');
 const cron = require('node-cron');
 const { enviarRecordatoriosDelDia } = require('./services/recordatorioService');
 
@@ -27,6 +28,7 @@ app.use('/api/asistencia', asistenciaRoutes);
 app.use('/api/comprobantes', comprobanteRoutes);
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/recordatorios', recordatorioRoutes);
+app.use('/api/notificaciones', notificacionRoutes);
 
 // Todos los días a las 8:00 AM (hora de México) se envían los recordatorios del día
 cron.schedule('0 8 * * *', async () => {
