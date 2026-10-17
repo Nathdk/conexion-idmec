@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "254387097312",
+    "project_id": "conexion-idmec",
+    "storage_bucket": "conexion-idmec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:254387097312:android:3ad1f84642b2d909f60a85",
+        "android_client_info": {
+          "package_name": "com.example.app_movil"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtrxDcXYQHf8Oc-cXrrwiLDSr8mZKCGn4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

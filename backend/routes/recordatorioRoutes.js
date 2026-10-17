@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { enviarRecordatoriosDelDia } = require('../services/recordatorioService');
+const notificador = require('../services/notificador');
 
 // Listar recordatorios programados
 router.get('/', async (req, res) => {
@@ -28,5 +29,16 @@ router.post('/ejecutar', async (req, res) => {
     res.status(500).json({ mensaje: 'Error al ejecutar recordatorios', error: error.message });
   }
 });
+
+// Envía una notificación de prueba a los celulares suscritos
+router.post('/prueba', async (req, res) => {
+  const enviado = await notificador.enviar({
+    tema: 'eventos',
+    titulo: 'Prueba CONEXIÓN IDMEC',
+    cuerpo: 'Si ves esto, las notificaciones funcionan',
+  });
+  res.json({ mensaje: enviado ? 'Notificación enviada' : 'No se pudo enviar, revisa la consola del backend' });
+});
+
 
 module.exports = router;
