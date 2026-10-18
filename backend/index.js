@@ -12,6 +12,8 @@ const comprobanteRoutes = require('./routes/comprobanteRoutes');
 const eventoRoutes = require('./routes/eventoRoutes');
 const recordatorioRoutes = require('./routes/recordatorioRoutes');
 const notificacionRoutes = require('./routes/notificacionRoutes');
+const limpiezaRoutes = require('./routes/limpiezaRoutes');
+const { enviarLimpiezaDeLaSemana } = require('./services/limpiezaService');
 const cron = require('node-cron');
 const { enviarRecordatoriosDelDia } = require('./services/recordatorioService');
 
@@ -29,6 +31,18 @@ app.use('/api/comprobantes', comprobanteRoutes);
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/recordatorios', recordatorioRoutes);
 app.use('/api/notificaciones', notificacionRoutes);
+
+app.use('/api/limpieza', limpiezaRoutes);
+
+// Cada lunes a las 8:00 AM (hora de México) se avisa quién limpia esa semana
+cron.schedule('0 8 * * 1', async () => {
+  try {
+    const total = await enviarLimpiezaDeLaSemana();
+    console.log(`Asignaciones de limpieza avisadas: ${total}`);
+  } catch (error) {
+    console.error('Error en el aviso semanal de limpieza:', error.message);
+  }
+}, { timezone: 'America/Mexico_City' });
 
 // Todos los días a las 8:00 AM (hora de México) se envían los recordatorios del día
 cron.schedule('0 8 * * *', async () => {

@@ -8,6 +8,7 @@ import 'asistencia_screen.dart';
 import 'estadisticas_asistencia_screen.dart';
 import 'eventos_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'limpieza_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,19 +35,24 @@ class _HomeScreenState extends State<HomeScreen> {
       _rol = sesion['rol'];
     });
 
-    // Los avisos de inventario solo les llegan al administrador y al tesorero
-    if (_rol == 'Administrador' || _rol == 'Tesorero') {
-      try {
-        await FirebaseMessaging.instance.subscribeToTopic('inventario');
-      } catch (e) {
-        debugPrint('No se pudo suscribir a los avisos de inventario: $e');
+    // Cada rol recibe solo los avisos que le corresponden
+    final mensajero = FirebaseMessaging.instance;
+    try {
+      if (_rol == 'Administrador' || _rol == 'Tesorero') {
+        await mensajero.subscribeToTopic('inventario');
       }
+      if (_rol == 'Administrador' || _rol == 'Líder') {
+        await mensajero.subscribeToTopic('limpieza');
+      }
+    } catch (e) {
+      debugPrint('No se pudo suscribir a los avisos: $e');
     }
   }
 
   Future<void> _cerrarSesion() async {
     try {
       await FirebaseMessaging.instance.unsubscribeFromTopic('inventario');
+      await FirebaseMessaging.instance.unsubscribeFromTopic('limpieza');
     } catch (_) {}
     await _authService.cerrarSesion();
     if (!mounted) return;
@@ -69,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _Modulo('Asistencia', Icons.fact_check, () => const AsistenciaScreen()),
         _Modulo('Estadísticas', Icons.bar_chart, () => const EstadisticasAsistenciaScreen()),
         _Modulo('Eventos', Icons.event, () => const EventosScreen()),
-
+        _Modulo('Limpieza', Icons.cleaning_services, () => const LimpiezaScreen()),
       ]);
     }
     return modulos;
