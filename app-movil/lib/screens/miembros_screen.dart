@@ -134,9 +134,13 @@ class _FormularioMiembroState extends State<_FormularioMiembro> {
   late TextEditingController _telefonoCtrl;
   late TextEditingController _departamentoCtrl;
   DateTime _fechaIngreso = DateTime.now();
+  DateTime? _fechaNacimiento;
   bool _guardando = false;
 
   bool get _esEdicion => widget.miembro != null;
+
+  String _fmt(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   @override
   void initState() {
@@ -145,14 +149,28 @@ class _FormularioMiembroState extends State<_FormularioMiembro> {
     _telefonoCtrl = TextEditingController(text: widget.miembro?['telefono'] ?? '');
     _departamentoCtrl = TextEditingController(text: widget.miembro?['departamento'] ?? '');
     if (widget.miembro != null) {
-      _fechaIngreso = DateTime.parse(widget.miembro!['fecha_ingreso']);
+      _fechaIngreso = DateTime.parse(widget.miembro!['fecha_ingreso'].toString().substring(0, 10));
+      final nacimiento = widget.miembro!['fecha_nacimiento'];
+      if (nacimiento != null) {
+        _fechaNacimiento = DateTime.parse(nacimiento.toString());
+      }
     }
   }
 
+  @override
+  void dispose() {
+    _nombreCtrl.dispose();
+    _telefonoCtrl.dispose();
+    _departamentoCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _guardar() async {
-    if (_nombreCtrl.text.isEmpty || _telefonoCtrl.text.isEmpty || _departamentoCtrl.text.isEmpty) {
+    if (_nombreCtrl.text.trim().isEmpty ||
+        _telefonoCtrl.text.trim().isEmpty ||
+        _departamentoCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completa todos los campos')),
+        const SnackBar(content: Text('Completa nombre, teléfono y departamento')),
       );
       return;
     }
@@ -160,10 +178,11 @@ class _FormularioMiembroState extends State<_FormularioMiembro> {
     setState(() => _guardando = true);
 
     final datos = {
-      'nombre': _nombreCtrl.text,
-      'telefono': _telefonoCtrl.text,
-      'departamento': _departamentoCtrl.text,
-      'fecha_ingreso': _fechaIngreso.toIso8601String().split('T')[0],
+      'nombre': _nombreCtrl.text.trim(),
+      'telefono': _telefonoCtrl.text.trim(),
+      'departamento': _departamentoCtrl.text.trim(),
+      'fecha_ingreso': _fmt(_fechaIngreso),
+      'fecha_nacimiento': _fechaNacimiento == null ? null : _fmt(_fechaNacimiento!),
     };
 
     try {
@@ -189,61 +208,91 @@ class _FormularioMiembroState extends State<_FormularioMiembro> {
         left: 20, right: 20, top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _esEdicion ? 'Editar miembro' : 'Nuevo miembro',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: ColoresApp.azulMarino),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _nombreCtrl,
-            decoration: const InputDecoration(labelText: 'Nombre', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _telefonoCtrl,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Teléfono', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _departamentoCtrl,
-            decoration: const InputDecoration(labelText: 'Departamento', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 12),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text('Fecha de ingreso: ${_fechaIngreso.toLocal().toString().split(' ')[0]}'),
-            trailing: const Icon(Icons.calendar_today, color: ColoresApp.azulMedio),
-            onTap: () async {
-              final fecha = await showDatePicker(
-                context: context,
-                initialDate: _fechaIngreso,
-                firstDate: DateTime(1950),
-                lastDate: DateTime.now(),
-              );
-              if (fecha != null) setState(() => _fechaIngreso = fecha);
-            },
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _guardando ? null : _guardar,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColoresApp.azulMedio,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: _guardando
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Guardar'),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _esEdicion ? 'Editar miembro' : 'Nuevo miembro',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: ColoresApp.azulMarino),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            TextField(
+              controller: _nombreCtrl,
+              decoration: const InputDecoration(labelText: 'Nombre', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _telefonoCtrl,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Teléfono', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _departamentoCtrl,
+              decoration: const InputDecoration(labelText: 'Departamento', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text('Fecha de ingreso: ${_fmt(_fechaIngreso)}'),
+              trailing: const Icon(Icons.calendar_today, color: ColoresApp.azulMedio),
+              onTap: () async {
+                final fecha = await showDatePicker(
+                  context: context,
+                  initialDate: _fechaIngreso,
+                  firstDate: DateTime(1950),
+                  lastDate: DateTime.now(),
+                );
+                if (fecha != null) setState(() => _fechaIngreso = fecha);
+              },
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                _fechaNacimiento == null
+                    ? 'Fecha de nacimiento: sin registrar'
+                    : 'Fecha de nacimiento: ${_fmt(_fechaNacimiento!)}',
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_fechaNacimiento != null)
+                    IconButton(
+                      icon: const Icon(Icons.clear, color: ColoresApp.grisMedio),
+                      onPressed: () => setState(() => _fechaNacimiento = null),
+                    ),
+                  const Icon(Icons.cake, color: ColoresApp.azulMedio),
+                ],
+              ),
+              onTap: () async {
+                final fecha = await showDatePicker(
+                  context: context,
+                  initialDate: _fechaNacimiento ?? DateTime(2000),
+                  firstDate: DateTime(1920),
+                  lastDate: DateTime.now(),
+                );
+                if (fecha != null) setState(() => _fechaNacimiento = fecha);
+              },
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _guardando ? null : _guardar,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColoresApp.azulMedio,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: _guardando
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Guardar'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

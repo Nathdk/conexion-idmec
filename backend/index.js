@@ -13,6 +13,8 @@ const eventoRoutes = require('./routes/eventoRoutes');
 const recordatorioRoutes = require('./routes/recordatorioRoutes');
 const notificacionRoutes = require('./routes/notificacionRoutes');
 const limpiezaRoutes = require('./routes/limpiezaRoutes');
+const cumpleanosRoutes = require('./routes/cumpleanosRoutes');
+const { enviarCumpleanosDeHoy } = require('./services/cumpleanosService');
 const { enviarLimpiezaDeLaSemana } = require('./services/limpiezaService');
 const cron = require('node-cron');
 const { enviarRecordatoriosDelDia } = require('./services/recordatorioService');
@@ -31,8 +33,20 @@ app.use('/api/comprobantes', comprobanteRoutes);
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/recordatorios', recordatorioRoutes);
 app.use('/api/notificaciones', notificacionRoutes);
-
 app.use('/api/limpieza', limpiezaRoutes);
+
+app.use('/api/cumpleanos', cumpleanosRoutes);
+
+// Todos los días a las 8:00 AM (hora de México) se avisan los cumpleaños del día
+cron.schedule('0 8 * * *', async () => {
+  try {
+    const total = await enviarCumpleanosDeHoy();
+    console.log(`Cumpleaños avisados: ${total}`);
+  } catch (error) {
+    console.error('Error en el aviso diario de cumpleaños:', error.message);
+  }
+}, { timezone: 'America/Mexico_City' });
+
 
 // Cada lunes a las 8:00 AM (hora de México) se avisa quién limpia esa semana
 cron.schedule('0 8 * * 1', async () => {

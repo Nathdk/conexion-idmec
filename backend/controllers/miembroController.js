@@ -1,22 +1,26 @@
 const pool = require('../config/db');
 
+const COLUMNAS = `id_miembro, nombre, telefono, departamento, fecha_ingreso,
+                  to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento`;
+
 // Crear miembro
 const crearMiembro = async (req, res) => {
-  const { nombre, telefono, departamento, fecha_ingreso } = req.body;
+  const { nombre, telefono, departamento, fecha_ingreso, fecha_nacimiento } = req.body;
 
   if (!nombre || !telefono || !departamento || !fecha_ingreso) {
-    return res.status(400).json({ mensaje: 'Todos los campos son obligatorios' });
+    return res.status(400).json({ mensaje: 'Nombre, teléfono, departamento y fecha de ingreso son obligatorios' });
   }
 
   try {
-    const existe = await pool.query('SELECT * FROM miembro WHERE telefono = $1', [telefono]);
+    const existe = await pool.query('SELECT 1 FROM miembro WHERE telefono = $1', [telefono]);
     if (existe.rows.length > 0) {
       return res.status(409).json({ mensaje: 'Ese teléfono ya está registrado' });
     }
 
     const nuevoMiembro = await pool.query(
-      'INSERT INTO miembro (nombre, telefono, departamento, fecha_ingreso) VALUES ($1, $2, $3, $4) RETURNING *',
-      [nombre, telefono, departamento, fecha_ingreso]
+      `INSERT INTO miembro (nombre, telefono, departamento, fecha_ingreso, fecha_nacimiento)
+       VALUES ($1, $2, $3, $4, $5) RETURNING ${COLUMNAS}`,
+      [nombre, telefono, departamento, fecha_ingreso, fecha_nacimiento || null]
     );
 
     res.status(201).json({ mensaje: 'Miembro registrado correctamente', miembro: nuevoMiembro.rows[0] });
@@ -28,7 +32,7 @@ const crearMiembro = async (req, res) => {
 // Listar miembros
 const listarMiembros = async (req, res) => {
   try {
-    const resultado = await pool.query('SELECT * FROM miembro ORDER BY id_miembro');
+    const resultado = await pool.query(`SELECT ${COLUMNAS} FROM miembro ORDER BY id_miembro`);
     res.json(resultado.rows);
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al listar miembros', error: error.message });
@@ -39,7 +43,7 @@ const listarMiembros = async (req, res) => {
 const obtenerMiembro = async (req, res) => {
   const { id } = req.params;
   try {
-    const resultado = await pool.query('SELECT * FROM miembro WHERE id_miembro = $1', [id]);
+    const resultado = await pool.query(`SELECT ${COLUMNAS} FROM miembro WHERE id_miembro = $1`, [id]);
     if (resultado.rows.length === 0) {
       return res.status(404).json({ mensaje: 'Miembro no encontrado' });
     }
@@ -52,27 +56,32 @@ const obtenerMiembro = async (req, res) => {
 // Actualizar miembro
 const actualizarMiembro = async (req, res) => {
   const { id } = req.params;
-  const { nombre, telefono, departamento, fecha_ingreso } = req.body;
+  const { nombre, telefono, departamento, fecha_ingreso, fecha_nacimiento } = req.body;
 
   if (!nombre || !telefono || !departamento || !fecha_ingreso) {
-    return res.status(400).json({ mensaje: 'Todos los campos son obligatorios' });
+    return res.status(400).json({ mensaje: 'Nombre, teléfono, departamento y fecha de ingreso son obligatorios' });
   }
 
   try {
     const resultado = await pool.query(
-      'UPDATE miembro SET nombre = $1, telefono = $2, departamento = $3, fecha_ingreso = $4 WHERE id_miembro = $5 RETURNING *',
-      [nombre, telefono, departamento, fecha_ingreso, id]
+      `UPDATE miembro
+       SET nombre = $1, telefono = $2, departamento = $3, fecha_ingreso = $4, fecha_nacimiento = $5
+       WHERE id_miembro = $6 RETURNING ${COLUMNAS}`,
+      [nombre, telefono, departamento, fecha_ingreso, fecha_nacimiento || null, id]
     );
     if (resultado.rows.length === 0) {
       return res.status(404).json({ mensaje: 'Miembro no encontrado' });
     }
     res.json({ mensaje: 'Miembro actualizado correctamente', miembro: resultado.rows[0] });
   } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ mensaje: 'Ese teléfono ya está registrado' });
+    }
     res.status(500).json({ mensaje: 'Error al actualizar miembro', error: error.message });
   }
 };
 
-// Eliminar (desactivar) miembro
+// Eliminar miembro
 const eliminarMiembro = async (req, res) => {
   const { id } = req.params;
   try {
@@ -82,6 +91,9 @@ const eliminarMiembro = async (req, res) => {
     }
     res.json({ mensaje: 'Miembro eliminado correctamente' });
   } catch (error) {
+    if (error.code === '23503') {
+      return res.status(409).json({ mensaje: 'No se puede eliminar: el miembro tiene asistencias o asignaciones registradas' });
+    }
     res.status(500).json({ mensaje: 'Error al eliminar miembro', error: error.message });
   }
 };

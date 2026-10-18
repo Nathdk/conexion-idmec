@@ -1,14 +1,15 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../widgets/colores_app.dart';
+import 'asistencia_screen.dart';
+import 'cumpleanos_screen.dart';
+import 'estadisticas_asistencia_screen.dart';
+import 'eventos_screen.dart';
+import 'limpieza_screen.dart';
 import 'login_screen.dart';
 import 'miembros_screen.dart';
 import 'visitantes_screen.dart';
-import 'asistencia_screen.dart';
-import 'estadisticas_asistencia_screen.dart';
-import 'eventos_screen.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'limpieza_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,6 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_rol == 'Administrador' || _rol == 'Líder') {
         await mensajero.subscribeToTopic('limpieza');
       }
+      if (_rol == 'Administrador' || _rol == 'Pastor') {
+        await mensajero.subscribeToTopic('cumpleanos');
+      }
     } catch (e) {
       debugPrint('No se pudo suscribir a los avisos: $e');
     }
@@ -51,8 +55,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _cerrarSesion() async {
     try {
-      await FirebaseMessaging.instance.unsubscribeFromTopic('inventario');
-      await FirebaseMessaging.instance.unsubscribeFromTopic('limpieza');
+      final mensajero = FirebaseMessaging.instance;
+      await mensajero.unsubscribeFromTopic('inventario');
+      await mensajero.unsubscribeFromTopic('limpieza');
+      await mensajero.unsubscribeFromTopic('cumpleanos');
     } catch (_) {}
     await _authService.cerrarSesion();
     if (!mounted) return;
@@ -76,8 +82,12 @@ class _HomeScreenState extends State<HomeScreen> {
         _Modulo('Estadísticas', Icons.bar_chart, () => const EstadisticasAsistenciaScreen()),
         _Modulo('Eventos', Icons.event, () => const EventosScreen()),
         _Modulo('Limpieza', Icons.cleaning_services, () => const LimpiezaScreen()),
+        _Modulo('Cumpleaños', Icons.cake, () => const CumpleanosScreen()),
       ]);
+    } else if (_rol == 'Pastor') {
+      modulos.add(_Modulo('Cumpleaños', Icons.cake, () => const CumpleanosScreen()));
     }
+
     return modulos;
   }
 
