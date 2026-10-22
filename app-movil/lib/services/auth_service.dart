@@ -6,11 +6,13 @@ import 'api_service.dart';
 class AuthService {
   Future<Map<String, dynamic>> login(String correo, String contrasena) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/auth/login');
-    final respuesta = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'correo': correo, 'contrasena': contrasena}),
-    );
+    final respuesta = await http
+        .post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'correo': correo, 'contrasena': contrasena}),
+        )
+        .timeout(const Duration(seconds: 15));
 
     final datos = jsonDecode(respuesta.body);
 
@@ -40,8 +42,12 @@ class AuthService {
       'id_usuario': prefs.getInt('id_usuario'),
     };
   }
+
   Future<void> cerrarSesion() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    // Se borran solo los datos de la sesión: la dirección del servidor se conserva
+    for (final clave in ['token', 'nombre', 'rol', 'id_usuario']) {
+      await prefs.remove(clave);
+    }
   }
 }

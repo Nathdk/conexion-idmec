@@ -6,6 +6,7 @@ import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'widgets/colores_app.dart';
+import 'services/api_service.dart';
 
 // Permite mostrar avisos desde cualquier parte de la app
 final GlobalKey<ScaffoldMessengerState> mensajeroKey = GlobalKey<ScaffoldMessengerState>();
@@ -34,6 +35,7 @@ Future<void> _configurarNotificaciones() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ApiConfig.cargar();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
   _configurarNotificaciones();

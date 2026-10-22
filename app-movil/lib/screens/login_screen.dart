@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/colores_app.dart';
 import 'home_screen.dart';
@@ -23,27 +24,91 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
 
-    final resultado = await _authService.login(
-      _correoController.text.trim(),
-      _contrasenaController.text.trim(),
+    try {
+      final resultado = await _authService.login(
+        _correoController.text.trim(),
+        _contrasenaController.text.trim(),
+      );
+
+      if (resultado['exito']) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+        setState(() => _error = resultado['mensaje']);
+      }
+    } catch (e) {
+      setState(() => _error = 'No se pudo conectar con el servidor. Revisa la dirección en el engranaje.');
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  Future<void> _configurarServidor() async {
+    final controlador = TextEditingController(text: ApiConfig.baseUrl);
+
+    final guardar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Dirección del servidor'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Pega la dirección que muestra el túnel (https://...trycloudflare.com).'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controlador,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await ApiConfig.restablecer();
+              if (dialogContext.mounted) Navigator.pop(dialogContext, null);
+            },
+            child: const Text('Restablecer'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
     );
 
-    setState(() => _cargando = false);
-
-    if (resultado['exito']) {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else {
-      setState(() => _error = resultado['mensaje']);
+    if (guardar == true) {
+      await ApiConfig.guardar(controlador.text);
     }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Servidor: ${ApiConfig.baseUrl}')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColoresApp.fondoClaro,
+      appBar: AppBar(
+        backgroundColor: ColoresApp.fondoClaro,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: ColoresApp.grisMedio),
+            tooltip: 'Servidor',
+            onPressed: _configurarServidor,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
