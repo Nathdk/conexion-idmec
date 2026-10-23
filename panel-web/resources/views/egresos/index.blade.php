@@ -94,7 +94,7 @@
                                 <td>{{ $e->fecha }}</td>
                                 <td>{{ $e->concepto }}</td>
                                 <td class="monto">${{ number_format((float) $e->monto, 2) }}</td>
-                                <td><a class="ver" href="{{ $urlComprobantes }}/{{ $e->comprobante }}" target="_blank">Ver</a></td>
+                                <td><a class="ver" href="{{ route('egresos.comprobante', $e->id_egreso) }}" target="_blank">Ver</a></td>
                                 <td>
                                     <form method="POST" action="{{ route('egresos.destroy', $e->id_egreso) }}"
                                           onsubmit="return confirm('¿Eliminar este egreso?')">

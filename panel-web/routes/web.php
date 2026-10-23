@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/egresos', [EgresoController::class, 'index'])->name('egresos.index');
     Route::post('/egresos', [EgresoController::class, 'store'])->name('egresos.store');
     Route::delete('/egresos/{id}', [EgresoController::class, 'destroy'])->name('egresos.destroy');
+    Route::get('/egresos/{id}/comprobante', [EgresoController::class, 'comprobante'])->name('egresos.comprobante');
 
     Route::get('/balance', [BalanceController::class, 'index'])->name('balance.index');
 

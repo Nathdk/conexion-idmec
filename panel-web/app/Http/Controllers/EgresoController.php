@@ -21,7 +21,6 @@ class EgresoController extends Controller
         return view('egresos.index', [
             'egresos' => $egresos,
             'total' => $egresos->sum('monto'),
-            'urlComprobantes' => $this->urlComprobantes(),
         ]);
     }
 
@@ -63,6 +62,27 @@ class EgresoController extends Controller
         ]);
 
         return redirect()->route('egresos.index')->with('exito', 'Egreso registrado correctamente');
+    }
+
+    // Muestra el comprobante: Laravel lo pide a Node y se lo entrega al navegador
+    public function comprobante($id)
+    {
+        $egreso = Egreso::where('id_egreso', $id)->firstOrFail();
+
+        try {
+            $respuesta = Http::timeout(15)->get($this->urlComprobantes() . '/' . $egreso->comprobante);
+        } catch (ConnectionException $e) {
+            abort(502, 'No se pudo conectar con el servidor de comprobantes');
+        }
+
+        if (!$respuesta->successful()) {
+            abort(404, 'Comprobante no encontrado');
+        }
+
+        return response($respuesta->body(), 200, [
+            'Content-Type' => $respuesta->header('Content-Type'),
+            'Content-Disposition' => $respuesta->header('Content-Disposition'),
+        ]);
     }
 
     public function destroy($id)
